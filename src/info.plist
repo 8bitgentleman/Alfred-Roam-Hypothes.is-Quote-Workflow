@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.alfredapp.mtv.roamhypothesis.snippettrigger</string>
+	<key>category</key>
+	<string>Productivity</string>
+	<key>connections</key>
+	<dict>
+		<key>462EDC02-BE08-4A6F-B4A3-E31B72AD90F9</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>A28D377A-DCF7-4222-8520-355CDC6885BE</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>A28D377A-DCF7-4222-8520-355CDC6885BE</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>AB6FF986-D5BA-4ECF-990A-2F454C403519</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>AB6FF986-D5BA-4ECF-990A-2F454C403519</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>CE2A75F0-FD42-4B73-9707-E5BCA4AEA46D</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Matthew Vogel</string>
+	<key>description</key>
+	<string>Creates a hypothes.is styled card for Roam Research</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Roam - Hypothes.is :hiccup</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>lastpathcomponent</key>
+				<false/>
+				<key>onlyshowifquerypopulated</key>
+				<false/>
+				<key>removeextension</key>
+				<false/>
+				<key>text</key>
+				<string>Hypothes.is Hiccup Created</string>
+				<key>title</key>
+				<string>Roam :hiccup</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.notification</string>
+			<key>uid</key>
+			<string>CE2A75F0-FD42-4B73-9707-E5BCA4AEA46D</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>autopaste</key>
+				<true/>
+				<key>clipboardtext</key>
+				<string>{query}</string>
+				<key>transient</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.clipboard</string>
+			<key>uid</key>
+			<string>AB6FF986-D5BA-4ECF-990A-2F454C403519</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>68</integer>
+				<key>script</key>
+				<string># -*- coding: utf-8 -*-
+
+import json
+import urllib2
+import datetime
+import sys
+import subprocess
+from tkinter import Tk
+import os
+
+from string import Template
+
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
+
+
+# config
+HYPOTHESIS_TOKEN = os.environ['token']
+HYPOTESIS_USER = os.environ['username']
+
+HYPOTESIS_ID = 'acct:' + HYPOTESIS_USER + '@hypothes.is'
+HYPOTHESIS_USER_URL = "https://hypothes.is/users/" + HYPOTESIS_USER
+
+# set clipboard
+# subprocess.run("pbcopy", universal_newlines=True, input=data)
+
+
+def create_hiccup(username, date, url, user_url="", highlight="", annotation=""):
+    '''Takes highlight info and turns it into an HTML based clojure hiccup styled correctly. Based on HTMO from https://codepen.io/thearchitect21/pen/bGVzJLe'''
+
+    hiccup = Template(""":hiccup [:html [:head [:style ".annotation-card {font-family: \"Helvetica\", sans-serif;font-size: 13px;border: 1px solid rgb(236, 236, 236);list-style: none;padding: 13px;margin-bottom: 10px;box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.4);background: rgb(255, 255, 255);overflow-wrap: break-word;max-width: 400px;}.annotation-card:hover {box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.45);}.annotation-card:hover .annotation-card__quote {border-left: rgb(247, 145, 88) 3px solid;color:black !important;}.annotation-card:hover .annotation-card__timestamp{color: rgb(122, 122, 122) !important;}.annotation-card:hover .annotation-card__username{color: rgb(122, 122, 122) !important;}.annotation-card:hover .annotation-card__text{color: rgb(122, 122, 122) !important;}.annotation-card__header {color: rgb(166, 166, 166) !important;margin-bottom: 15px;-ms-flex-align: baseline;align-items: baseline;}.annotation-card__username-timestamp {display: -ms-flexbox;display: flex;-ms-flex-direction: row;flex-direction: row;-ms-flex-pack: justify;justify-content: space-between}.annotation-card__username {color: rgb(166, 166, 166) !important;font-style: italic;font-weight: 200}.annotation-card__timestamp {font-size: 11px;line-height: 12px;font-weight: 400;letter-spacing: .2px;color: rgb(166, 166, 166) !important;}.annotation-card__text {line-height: normal;overflow-wrap: break-word;color:rgb(166, 166, 166) !important;font-weight: 400;}.annotation-card__text h1,.annotation-card__text h2,.annotation-card__text h3,.annotation-card__text h4,.annotation-card__text h5,.annotation-card__text h6,.annotation-card__text p,.annotation-card__text ol,.annotation-card__text ul,.annotation-card__text img,.annotation-card__text pre,.annotation-card__text blockquote {margin: .618em 0}.annotation-card__text h1,.annotation-card__text h2,.annotation-card__text h3,.annotation-card__text h4,.annotation-card__text h5,.annotation-card__text h6 {font-family: \"Helvetica Neue\", Helvetica, Arial, \"Lucida Grande\", sans-serif}.annotation-card__text h1 {font-size: 2.618em;font-weight: bold;margin: .2327em 0}.annotation-card__text h2 {font-size: 1.991em;font-weight: bold;margin: .309em 0}.annotation-card__text h3 {font-size: 1.991em;margin: .309em 0}.annotation-card__text h4 {font-size: 1.618em;margin: .3803em 0}.annotation-card__text h5 {font-size: 1.231em;margin: .4944em 0}.annotation-card__text h6 {font-size: 1.231em;margin: .4944em 0}.annotation-card__text ol,.annotation-card__text ul {list-style-position: inside;padding-left: 0}.annotation-card__text ol ol,.annotation-card__text ol ul,.annotation-card__text ul ol,.annotation-card__text ul ul {padding-left: 1em}.annotation-card__text ol {list-style-type: decimal}.annotation-card__text ul {list-style-type: disc}.annotation-card__text ol ul,.annotation-card__text ul ul {list-style-type: circle}.annotation-card__text li {margin-bottom: .291em}.annotation-card__text li,.annotation-card__text p {line-height: 1.3}.annotation-card__text a {text-decoration: underline}.annotation-card__text img {display: block;max-width: 100%}.annotation-card__text blockquote {font-size: 13px;line-height: 15px;font-weight: 400;border-left: 3px solid rgb(219, 219, 219);color: rgb(166, 166, 166) !important;font-family: sans-serif;font-size: 12px;font-style: italic;letter-spacing: .1px;padding: 0 1em;margin: 1em 0}.annotation-card__text blockquote p,.annotation-card__text blockquote ol,.annotation-card__text blockquote ul,.annotation-card__text blockquote img,.annotation-card__text blockquote pre,.annotation-card__text blockquote blockquote {margin: .7063em 0}.annotation-card__text blockquote p,.annotation-card__text blockquote li {line-height: 1.5}.annotation-card__text code {font-family: Open Sans Mono, Menlo, DejaVu Sans Mono, monospace;font-size: .875em;color: rgb(0, 0, 0)}.annotation-card__text pre code {padding: 10px;display: block;background-color: rgb(242, 242, 242);border-radius: 2px}.annotation-card__quote {padding: 0 10px;overflow-wrap: break-word;color: rgb(77, 77, 77) !important;font-weight: bold;font-family: sans-serif;font-size: 14px;font-style: italic;letter-spacing: .1px;border-left: 3px solid rgb(219, 219, 219);margin-bottom: 10px;margin-left: 0;margin-right: 0}.annotation-card__tags {display: -ms-flexbox;display: flex;-ms-flex-direction: row;flex-direction: row;-ms-flex-wrap: wrap;flex-wrap: wrap}.annotation-card__tag {text-decoration: none;border: 1px solid rgb(219, 219, 219);border-radius: 2px;padding: 0 5px 2px;color: rgb(122, 122, 122);background: rgb(242, 242, 242);margin: 0 5px 5px 0;font-size: 11px;cursor: pointer;white-space: nowrap;overflow: hidden;text-overflow: ellipsis}.annotation-card__footer {display: -ms-flexbox;display: flex;-ms-flex-direction: row;flex-direction: row;-ms-flex-pack: end;justify-content: flex-end;-ms-flex-align: baseline;align-items: baseline}.annotation-card__footer-link {margin-left: 15px;color: rgb(166, 166, 166);height: 16px;width: 16px;float:left}.annotation-card__incontext-link {height: 14px;width: 14px;padding-top: 1px}.annotation-card__incontext-link:visited {color: rgb(122, 122, 122)}.svg-icon {transform: translateX(0)}svg {-webkit-tap-highlight-color: rgba(255, 255, 255, 0)}a,a:active,a:focus,a:hover {text-decoration: none}ul,ol,li {border: 0;list-style: none;margin: 0;padding: 0}*,*:after,*:before {box-sizing: border-box}a {background-color: transparent}html,body{background-color: var(--page-color, rgb(255, 255, 255)) !important;}"]] [:body [:li{:class "annotation-card"}[:div{:class "annotation-card__header"}[:div{:class "annotation-card__username-timestamp"}[:a{:title "username",:href "$user_url",:target "_blank",:class "annotation-card__username"}"$username"] [:a{:title "date",:href "$url",:target "_blank",:class "annotation-card__timestamp"}"$date"]]] [:blockquote{:title "Annotation quote",:class "annotation-card__quote"}"$highlight"] [:div{:class "annotation-card__text"}[:p "$annotation"]] [:footer{:class "annotation-card__footer"}[:a{:href "$url",:rel "nofollow noopener",:target "_blank",:title "Visit annotation in context"}[:svg{:xmlns "http://www.w3.org/2000/svg",:class "svg-icon annotation-card__footer-link annotation-card__incontext-link",:height "11",:viewbox "0 0 11 11",:width "11"}[:path{:d "M7.586 2H4V0h5.997A1.002 1.002 0 0111 1.003V7H9V3.414l-7.293 7.293L.293 9.293 7.586 2z",:fill "currentColor",:fill-rule "evenodd"}]]]]]]]""")
+
+    clip = hiccup.substitute(date=date, username=username, user_url=user_url, highlight=highlight, annotation=annotation, url=url)
+
+    return clip
+
+
+def get_highlight(auth, id):
+    '''Gets a highlight from hypothes.is and returns relevant info.'''
+    urlData = "https://hypothes.is/api/annotations/" + id
+    req = urllib2.Request(urlData)
+    req.add_header('Authorization', 'Bearer %s' % auth)
+
+    webURL = urllib2.urlopen(req)
+    data = webURL.read()
+    # encoding = webURL.info().get_content_charset('utf-8')
+    j = json.loads(data.decode('utf-8'))
+
+    try:
+        article = j['document']['title'][0]
+    except Exception:
+        article = ""
+    try:
+        url = j['links']['incontext']
+    except Exception:
+        url = ""
+    try:
+        date_created = j['created'][:10]
+    except Exception:
+        date_created = ""
+    try:
+        date_updated = j['updated'][:10]
+    except Exception:
+        date_updated = ""
+    try:
+        tags = j['tags']
+    except Exception:
+        tags = ""
+    try:
+        annotation = j['text']
+    except Exception:
+        annotation = ""
+    try:
+        highlight = j['target'][0]['selector'][2]['exact']
+    except Exception:
+        highlight = ""
+    return highlight, annotation, tags, date_created, date_updated, url, article
+
+
+def parse_clipboard_link():
+    clip = Tk().clipboard_get()
+    if "hyp.is" in clip:
+        id = clip.split("hyp.is/")[1].split("/")[0]
+        return id
+    elif "annotations:" in clip:
+        id = clip.split("annotations:")[1]
+        return id
+    else:
+        return "G1VksG9WEeqdsytzMIjmww"
+
+
+# get id from clipboard
+highlight_id = parse_clipboard_link()
+
+h = get_highlight(HYPOTHESIS_TOKEN, highlight_id)
+username = HYPOTESIS_USER
+date = h[4]
+highlight = h[0]
+annotation = h[1]
+url = h[5]
+hiccup = create_hiccup(username, date, url, user_url=HYPOTHESIS_USER_URL, highlight=highlight, annotation=annotation)
+
+
+# sys.stdout.write(hiccup)  # send to alfred
+print(str(hiccup.encode('utf-8').strip()))</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string>/Users/mtvogel/Documents/PythonScripts/alfred_workflows/roam_hiccup/main.py</string>
+				<key>type</key>
+				<integer>3</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>A28D377A-DCF7-4222-8520-355CDC6885BE</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>focusedappvariable</key>
+				<false/>
+				<key>focusedappvariablename</key>
+				<string></string>
+				<key>keyword</key>
+				<string>hy</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.trigger.snippet</string>
+			<key>uid</key>
+			<string>462EDC02-BE08-4A6F-B4A3-E31B72AD90F9</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string>This workflow creates a hypothes.is styled :hiccup card that can be pasted into Roam Research. For setup you need to input your hypothes.is token and username as environment variables. You also need python 3.7 installed.
+
+To trigger the workflow copy the url of the hypothes.is quote and then, in Roam, type //hy</string>
+	<key>uidata</key>
+	<dict>
+		<key>462EDC02-BE08-4A6F-B4A3-E31B72AD90F9</key>
+		<dict>
+			<key>colorindex</key>
+			<integer>7</integer>
+			<key>note</key>
+			<string>1. Trigger the workflow with the snippet trigger you've set to //hypo</string>
+			<key>xpos</key>
+			<integer>65</integer>
+			<key>ypos</key>
+			<integer>275</integer>
+		</dict>
+		<key>A28D377A-DCF7-4222-8520-355CDC6885BE</key>
+		<dict>
+			<key>xpos</key>
+			<integer>245</integer>
+			<key>ypos</key>
+			<integer>275</integer>
+		</dict>
+		<key>AB6FF986-D5BA-4ECF-990A-2F454C403519</key>
+		<dict>
+			<key>colorindex</key>
+			<integer>2</integer>
+			<key>note</key>
+			<string>3. The script's content (which sets the time of day) is pasted to the frontmost app.</string>
+			<key>xpos</key>
+			<integer>425</integer>
+			<key>ypos</key>
+			<integer>275</integer>
+		</dict>
+		<key>CE2A75F0-FD42-4B73-9707-E5BCA4AEA46D</key>
+		<dict>
+			<key>xpos</key>
+			<integer>605</integer>
+			<key>ypos</key>
+			<integer>275</integer>
+		</dict>
+	</dict>
+	<key>variables</key>
+	<dict>
+		<key>token</key>
+		<string>6879-vKlrb35qfr94tfcmm-vYHZlDrWXCZRffR3ztmCjfTkw</string>
+		<key>username</key>
+		<string>theArchitect21</string>
+	</dict>
+	<key>variablesdontexport</key>
+	<array>
+		<string>token</string>
+		<string>username</string>
+	</array>
+	<key>version</key>
+	<string>1.0</string>
+	<key>webaddress</key>
+	<string>https://github.com/8bitgentleman/Alfred-Roam-Hypothes.is-Quote-Workflow</string>
+</dict>
+</plist>
